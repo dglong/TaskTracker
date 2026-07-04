@@ -9,9 +9,9 @@ using TaskTracker.Models;
 
 namespace TaskTracker.Services
 {
-    public class TaskService : ITaskService
+    public class TaskService(string filePath = "tasks.json") : ITaskService
     {
-        private readonly string filePath = "tasks.json";
+        private readonly string filePath = filePath;
         
         private readonly JsonSerializerOptions _jsonOption = new()
         {
@@ -45,7 +45,7 @@ namespace TaskTracker.Services
 
         public async Task<AppTask> AddTask(string taskDescription)
         {
-            if (string.IsNullOrWhiteSpace(taskDescription) || taskDescription.Length < 1)
+            if (string.IsNullOrWhiteSpace(taskDescription))
             {
                 throw new ArgumentException("Task description cannot be null or empty.");
             }
@@ -70,7 +70,7 @@ namespace TaskTracker.Services
 
         public async Task<AppTask> UpdateTask(int taskId, string taskDescription)
         {
-            if (string.IsNullOrWhiteSpace(taskDescription) || taskDescription.Length < 1)
+            if (string.IsNullOrWhiteSpace(taskDescription))
             {
                 throw new ArgumentException("Task description cannot be null or empty.");
             }
@@ -110,20 +110,18 @@ namespace TaskTracker.Services
             }
         }
 
-        public async Task<bool> DeleteTask(int taskId)
+        public async Task DeleteTask(int taskId)
         {
             List<AppTask> tasks = await LoadTasksFromFile();
 
             if (tasks.Find(t => t.Id == taskId) is null)
             {
-                return false;
+                throw new KeyNotFoundException($"Task with ID {taskId} not found.");
             }
 
             tasks.RemoveAll(t => t.Id == taskId);
 
             await SaveTasksToFile(tasks);
-
-            return true;
         }
 
         public static bool TryParseStatus(string arg, out Status status)

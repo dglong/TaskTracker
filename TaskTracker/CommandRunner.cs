@@ -14,118 +14,99 @@ namespace TaskTracker
             _taskService = taskService;
         }
 
-        public async Task RunCommand(string[] args)
+        public async Task<int> RunCommand(string[] args)
         {
             switch (args[0])
             {
                 case "list":
                     {
-                        var isValid = ValidateArgs(args, 1, 2);
-                        if (!isValid)
+                        if (!ValidateArgs(args, 1, 2))
                         {
-                            return;
+                            return 1;
                         }
 
                         if (args.Length == 1)
                         {
                             var tasks = await _taskService.GetTasks();
                             PrintTasksToCLI(tasks);
-                            break;
+                            return 0;
                         }
 
                         if (TaskService.TryParseStatus(args[1], out Status status))
                         {
                             var tasks = await _taskService.GetTasks(status);
                             PrintTasksToCLI(tasks);
-                            break;
-
+                            return 0;
                         }
 
-                        ShowError("Invalid list type: " + args[1]);
-                        break;
+                        return ShowError("Invalid list type: " + args[1]);
                     }
                 case "add":
                     {
-                        var isValid = ValidateArgs(args, 2, 2);
-                        if (!isValid)
+                        if (!ValidateArgs(args, 2, 2))
                         {
-                            return;
+                            return 1;
                         }
 
                         var task = await _taskService.AddTask(args[1]);
                         Console.WriteLine($"Task added: {task.Id} - {task.Description}");
-                        break;
+                        return 0;
                     }
                 case "update":
                     {
-                        var isValid = ValidateArgs(args, 3, 3);
-                        if (!isValid)
+                        if (!ValidateArgs(args, 3, 3))
                         {
-                            return;
+                            return 1;
                         }
                         if (!TryParseTaskId(args[1], out int taskId))
                         {
-                            ShowError("Invalid task ID: " + args[1]);
-                            return;
+                            return ShowError("Invalid task ID: " + args[1]);
                         }
                         var task = await _taskService.UpdateTask(taskId, args[2]);
                         Console.WriteLine($"Task updated: {task.Id} - {task.Description}");
-                        break;
+                        return 0;
                     }
                 case "mark-in-progress":
                     {
-                        var isValid = ValidateArgs(args, 2, 2);
-                        if (!isValid)
+                        if (!ValidateArgs(args, 2, 2))
                         {
-                            return;
+                            return 1;
                         }
                         if (!TryParseTaskId(args[1], out int taskId))
                         {
-                            ShowError("Invalid task ID: " + args[1]);
-                            return;
+                            return ShowError("Invalid task ID: " + args[1]);
                         }
                         var task = await _taskService.UpdateTaskStatus(taskId, TaskTracker.Enums.Status.InProgress);
                         Console.WriteLine($"Task marked as In Progress: {task.Id} - {task.Description}");
-                        break;
+                        return 0;
                     }
                 case "mark-done":
                     {
-                        var isValid = ValidateArgs(args, 2, 2);
-                        if (!isValid)
+                        if (!ValidateArgs(args, 2, 2))
                         {
-                            return;
+                            return 1;
                         }
                         if (!TryParseTaskId(args[1], out int taskId))
                         {
-                            ShowError("Invalid task ID: " + args[1]);
-                            return;
+                            return ShowError("Invalid task ID: " + args[1]);
                         }
                         var task = await _taskService.UpdateTaskStatus(taskId, TaskTracker.Enums.Status.Done);
                         Console.WriteLine($"Task marked as Done: {task.Id} - {task.Description}");
-                        break;
+                        return 0;
                     }
                 case "delete":
                     {
-                        var isValid = ValidateArgs(args, 2, 2);
-                        if (!isValid)
+                        if (!ValidateArgs(args, 2, 2))
                         {
-                            return;
+                            return 1;
                         }
                         if (!TryParseTaskId(args[1], out int taskId))
                         {
-                            ShowError("Invalid task ID: " + args[1]);
-                            return;
+                            return ShowError("Invalid task ID: " + args[1]);
                         }
-                        var result = await _taskService.DeleteTask(taskId);
-                        if (result)
-                        {
-                            Console.WriteLine($"Task deleted: {taskId}");
-                        }
-                        else
-                        {
-                            ShowError("Task not found: " + taskId);
-                        }
-                        break;
+                        await _taskService.DeleteTask(taskId);
+                        Console.WriteLine($"Task deleted: {taskId}");
+                        return 0;
                     }
                 case "help":
                     {
@@ -136,12 +117,11 @@ namespace TaskTracker
                         Console.WriteLine("mark-in-progress <task id> - Mark a task as In Progress");
                         Console.WriteLine("mark-done <task id> - Mark a task as Done");
                         Console.WriteLine("delete <task id> - Delete a task");
-                        break;
+                        return 0;
                     }
                 default:
                     {
-                        ShowError("Unknown command: " + args[0]);
-                        break;
+                        return ShowError("Unknown command: " + args[0]);
                     }
             }
         }
@@ -186,10 +166,10 @@ namespace TaskTracker
             }
         }
 
-        public static void ShowError(string message)
+        public static int ShowError(string message)
         {
-            Console.WriteLine("Error: " + message);
-            Environment.Exit(1);
+            Console.Error.WriteLine("Error: " + message);
+            return 1;
         }
 
     }

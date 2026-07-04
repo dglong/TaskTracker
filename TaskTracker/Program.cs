@@ -7,19 +7,16 @@ Console.WriteLine("Task Tracker CLI");
 ITaskService taskService = new TaskService();
 var runner = new CommandRunner(taskService);
 
-if (args.Length > 0)
+if (args.Length == 0)
 {
-    try
-    {
-        await runner.RunCommand(args);
-
-    }
-    catch (Exception ex)
-    {
-        CommandRunner.ShowError(ex.Message);
-    }
+    return CommandRunner.ShowError("No command provided.");
 }
-else
+
+try
 {
-    CommandRunner.ShowError("No command provided.");
+    return await runner.RunCommand(args);
+}
+catch (Exception ex) when (ex is KeyNotFoundException or ArgumentException or InvalidOperationException)
+{
+    return CommandRunner.ShowError(ex.Message);
 }

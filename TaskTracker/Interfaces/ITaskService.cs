@@ -12,6 +12,6 @@ namespace TaskTracker.Interfaces
         Task<AppTask> AddTask(string taskDescription);
         Task<AppTask> UpdateTask(int taskId, string taskDescription);
         Task<AppTask> UpdateTaskStatus(int taskId, Enums.Status status);
-        Task<bool> DeleteTask(int taskId);
+        Task DeleteTask(int taskId);
     }
 }
