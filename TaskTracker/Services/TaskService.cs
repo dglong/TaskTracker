@@ -152,8 +152,14 @@ namespace TaskTracker.Services
 
         private async Task SaveTasksToFile(List<AppTask> tasks)
         {
-            await using FileStream stream = File.Create(filePath);
-            await JsonSerializer.SerializeAsync(stream, tasks, _jsonOption);
+            var tempPath = filePath + ".tmp";
+
+            await using (FileStream tempStream = File.Create(tempPath))
+            {
+                await JsonSerializer.SerializeAsync(tempStream, tasks, _jsonOption);
+            }
+
+            File.Move(tempPath, filePath, true);
         }
 
         private async Task<List<AppTask>> LoadTasksFromFile()
