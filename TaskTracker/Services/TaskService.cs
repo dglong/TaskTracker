@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Linq;
 using TaskTracker.Enums;
 using TaskTracker.Interfaces;
 using TaskTracker.Models;
 
 namespace TaskTracker.Services
 {
-    public class TaskService(string filePath = "tasks.json") : ITaskService
+    public class TaskService : ITaskService
     {
-        private readonly string filePath = filePath;
+        private readonly string _filePath = "tasks.json";
         
         private readonly JsonSerializerOptions _jsonOption = new()
         {
@@ -20,6 +21,11 @@ namespace TaskTracker.Services
             PropertyNameCaseInsensitive = true,
             Converters = { new JsonStringEnumConverter(JsonNamingPolicy.KebabCaseLower) }
         };
+
+        public TaskService(string filePath = "tasks.json")
+        {
+            this._filePath = filePath;
+        }
 
         public async Task<List<AppTask>> GetTasks(Status? filter = null)
         {
@@ -150,26 +156,26 @@ namespace TaskTracker.Services
 
         private async Task SaveTasksToFile(List<AppTask> tasks)
         {
-            var tempPath = filePath + ".tmp";
+            var tempPath = _filePath + ".tmp";
 
             await using (FileStream tempStream = File.Create(tempPath))
             {
                 await JsonSerializer.SerializeAsync(tempStream, tasks, _jsonOption);
             }
 
-            File.Move(tempPath, filePath, true);
+            File.Move(tempPath, _filePath, true);
         }
 
         private async Task<List<AppTask>> LoadTasksFromFile()
         {
-            List<AppTask> tasks = [];
+            List<AppTask> tasks = new List<AppTask>();
 
-            if (File.Exists(filePath))
+            if (File.Exists(_filePath))
             {
-                await using FileStream stream = File.OpenRead(filePath);
+                await using FileStream stream = File.OpenRead(_filePath);
                 try
                 {
-                    tasks = await JsonSerializer.DeserializeAsync<List<AppTask>>(stream, _jsonOption) ?? [];
+                    tasks = await JsonSerializer.DeserializeAsync<List<AppTask>>(stream, _jsonOption) ?? new List<AppTask>();
                 }
                 catch (JsonException)
                 {
