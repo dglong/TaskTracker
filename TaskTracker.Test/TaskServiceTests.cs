@@ -171,5 +171,16 @@ namespace TaskTracker.Test
         {
             await Assert.ThrowsAsync<KeyNotFoundException>(async () => await _testTaskService.DeleteTask(1));
         }
+
+        [Fact]
+        public async Task LoadTasks_CorruptedJson_ThrowsInvalidOperation()
+        {
+            await using (FileStream corruptFile = File.Create(_testFile))
+            {
+                corruptFile.Write(Encoding.UTF8.GetBytes("corrupted string"));
+            }
+            
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _testTaskService.AddTask("test task"));
+        }
     }
 }
