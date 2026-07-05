@@ -8,14 +8,19 @@ namespace TaskTracker.Test
 {
     public class CommandRunnerTests: IDisposable
     {
+        public readonly string _testFile;
         private readonly ITaskService _testTaskService;
         private readonly CommandRunner _testCommandRunner;
         public CommandRunnerTests()
         {
-            _testTaskService = new TaskService();
+            _testFile = Path.Combine(Path.GetTempPath(), $"test_tasks{Guid.NewGuid()}.json");
+            _testTaskService = new TaskService(_testFile);
             _testCommandRunner = new CommandRunner(_testTaskService);
         }
-        public void Dispose() { }
+        public void Dispose() 
+        {
+            File.Delete(_testFile);
+        }
 
         [Fact]
         public async Task RunCommand_ValidArgs_ReturnsZero()
