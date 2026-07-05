@@ -126,18 +126,39 @@ Saves are **atomic**: data is written to a temporary file and then moved into pl
 
 Error messages are written to **stderr**, so they stay visible even when standard output is redirected to a file.
 
+## Tests
+
+The solution includes an [xUnit](https://xunit.net/) test project, `TaskTracker.Test`. Run the full suite from the repository root:
+
+```bash
+dotnet test
+```
+
+The tests are organized by the class under test:
+
+| Test class | Covers |
+|------------|--------|
+| `TaskServiceTests` | Core task logic and JSON persistence — adding tasks and ID assignment, status filtering, updating, deleting, timestamps, atomic-save behavior, and the not-found error paths |
+| `CommandRunnerTests` | Command dispatch and exit codes — `0` on valid commands, `1` on unknown commands, bad task IDs, wrong argument counts, and invalid list filters |
+
+`TaskService` takes an optional file path in its constructor, which lets each test run against its own temporary `tasks.json` in isolation from real data.
+
 ## Project structure
 
 ```
-TaskTracker/
-├── Program.cs              # Entry point and single error/exit boundary
-├── CommandRunner.cs        # Parses arguments and dispatches commands
-├── Interfaces/
-│   └── ITaskService.cs     # Task service contract
-├── Services/
-│   └── TaskService.cs      # Task CRUD logic and JSON persistence
-├── Models/
-│   └── AppTask.cs          # Task model
-└── Enums/
-    └── Status.cs           # Task status (Todo, InProgress, Done)
+TaskTracker.slnx            # Solution file
+├── TaskTracker/            # Console application
+│   ├── Program.cs          # Entry point and single error/exit boundary
+│   ├── CommandRunner.cs    # Parses arguments and dispatches commands
+│   ├── Interfaces/
+│   │   └── ITaskService.cs # Task service contract
+│   ├── Services/
+│   │   └── TaskService.cs  # Task CRUD logic and JSON persistence
+│   ├── Models/
+│   │   └── AppTask.cs      # Task model
+│   └── Enums/
+│       └── Status.cs       # Task status (Todo, InProgress, Done)
+└── TaskTracker.Test/       # xUnit test project
+    ├── TaskServiceTests.cs
+    └── CommandRunnerTests.cs
 ```
